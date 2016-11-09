@@ -12,9 +12,12 @@ import static es.upm.miw.gestordespotify.model.bd.SpotifyContract.artistTable;
 
 public class BDSpotify extends SQLiteOpenHelper {
 
+    public static final String DATABASE_FILE = SpotifyContract.BD_NAME + ".db";
 
-    public BDSpotify(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
-        super(context, name, factory, version);
+    public static final int NUM_VERSION = 1;
+
+    public BDSpotify(Context context) {
+        super(context, DATABASE_FILE, null, NUM_VERSION);
     }
 
     @Override
@@ -23,6 +26,7 @@ public class BDSpotify extends SQLiteOpenHelper {
                 artistTable.COL_NAME_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 artistTable.COL_NAME_ID_API + " TEXT, " +
                 artistTable.COL_NAME_ARTIST_NAME + " TEXT, " +
+                artistTable.COL_NAME_IMAGE + " TEXT, " +
                 artistTable.COL_NAME_POPULARITY+ " INTEGER, " +
                 artistTable.COL_NAME_RATING + " DOUBLE " +
                 " );";
@@ -35,15 +39,31 @@ public class BDSpotify extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(consultaSQL);
     }
 
-    public Artist insertArtist(String idApi, String artistName, int popularity, double rating){
+    public Artist insertArtist(String idApi, String artistName, String image, int popularity, double rating){
         SQLiteDatabase db = getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put(artistTable.COL_NAME_ID_API, idApi);
         contentValues.put(artistTable.COL_NAME_ARTIST_NAME, artistName);
+        contentValues.put(artistTable.COL_NAME_IMAGE, image);
         contentValues.put(artistTable.COL_NAME_POPULARITY, popularity);
         contentValues.put(artistTable.COL_NAME_RATING, rating);
         long id = db.insert(artistTable.TABLE_NAME, null, contentValues);
         return getArtistById(id);
+    }
+
+    public Artist updateArtist(String id, String idApi, String artistName, String image, int popularity, double rating){
+        Artist result = null;
+        SQLiteDatabase bd = getWritableDatabase();
+        String where = "_id=?";
+        String[] args = {id};
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(artistTable.COL_NAME_ID_API, idApi);
+        contentValues.put(artistTable.COL_NAME_ARTIST_NAME, artistName);
+        contentValues.put(artistTable.COL_NAME_IMAGE, image);
+        contentValues.put(artistTable.COL_NAME_POPULARITY, popularity);
+        contentValues.put(artistTable.COL_NAME_RATING, rating);
+        bd.update(artistTable.TABLE_NAME,contentValues,where,args);
+        return result;
     }
 
     public Artist getArtistByName(String artistName){
@@ -87,6 +107,7 @@ public class BDSpotify extends SQLiteOpenHelper {
                 c.getInt(c.getColumnIndex(artistTable.COL_NAME_ID)),
                 c.getString(c.getColumnIndex(artistTable.COL_NAME_ID_API)),
                 c.getString(c.getColumnIndex(artistTable.COL_NAME_ARTIST_NAME)),
+                c.getString(c.getColumnIndex(artistTable.COL_NAME_IMAGE)),
                 c.getInt(c.getColumnIndex(artistTable.COL_NAME_POPULARITY)),
                 c.getDouble(c.getColumnIndex(artistTable.COL_NAME_RATING))
         );

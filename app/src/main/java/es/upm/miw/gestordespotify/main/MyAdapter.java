@@ -16,9 +16,10 @@ import java.util.List;
 
 import es.upm.miw.gestordespotify.R;
 import es.upm.miw.gestordespotify.model.api.pojo.searchartists.Item;
+import es.upm.miw.gestordespotify.model.bd.entities.Artist;
 
 
-public class MyAdapter extends ArrayAdapter<Item> {
+public class MyAdapter extends ArrayAdapter<Artist> {
 
     private Context context;
     private int resourceId;
@@ -42,15 +43,15 @@ public class MyAdapter extends ArrayAdapter<Item> {
             vista = (RelativeLayout) inf.inflate(resourceId, parent, false);
         }
 
-        Item item = (Item) objects.get(position);
+        Artist item = (Artist) objects.get(position);
 
-        if(!item.getImages().isEmpty()){
-            Picasso.with(context).load(item.getImages().get(0).getUrl()).into((ImageView) vista.findViewById(R.id.image));
+        if(!item.getImage().isEmpty()){
+            Picasso.with(context).load(item.getImage()).into((ImageView) vista.findViewById(R.id.image));
         }
         else{
             Log.i(MainActivity.TAG,"Imágenes vacía");
         }
-        ((TextView)vista.findViewById(R.id.artistName)).setText(item.getName());
+        ((TextView)vista.findViewById(R.id.artistName)).setText(item.getArtistName());
 
         return vista;
     }

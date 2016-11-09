@@ -1,10 +1,13 @@
 package es.upm.miw.gestordespotify.model.bd.entities;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 /**
  * Created by Jorge on 08/11/2016.
  */
 
-public class Artist {
+public class Artist implements Parcelable {
 
     private int id;
 
@@ -12,14 +15,17 @@ public class Artist {
 
     private String artistName;
 
+    private String image;
+
     private int popularity;
 
     private double rating;
 
-    public Artist(int id, String idApi, String artistName, int popularity, double rating) {
+    public Artist(int id, String idApi, String artistName, String image, int popularity, double rating) {
         this.id = id;
         this.idApi = idApi;
         this.artistName = artistName;
+        this.image = image;
         this.popularity = popularity;
         this.rating = rating;
     }
@@ -46,6 +52,14 @@ public class Artist {
 
     public void setArtistName(String artistName) {
         this.artistName = artistName;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
     }
 
     public int getPopularity() {
@@ -91,4 +105,40 @@ public class Artist {
         result = 31 * result + (int) (temp ^ (temp >>> 32));
         return result;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeInt(id);
+        parcel.writeString(idApi);
+        parcel.writeString(artistName);
+        parcel.writeString(image);
+        parcel.writeInt(popularity);
+        parcel.writeDouble(rating);
+    }
+
+    protected Artist(Parcel in){
+        this.id = in.readInt();
+        this.idApi = in.readString();
+        this.artistName = in.readString();
+        this.image = in.readString();
+        this.popularity = in.readInt();
+        this.rating = in.readDouble();
+    }
+
+    public static final Parcelable.Creator<Artist> CREATOR = new Parcelable.Creator<Artist>(){
+        @Override
+        public Artist createFromParcel(Parcel parcel) {
+            return new Artist(parcel);
+        }
+
+        @Override
+        public Artist[] newArray(int i) {
+            return new Artist[i];
+        }
+    };
 }

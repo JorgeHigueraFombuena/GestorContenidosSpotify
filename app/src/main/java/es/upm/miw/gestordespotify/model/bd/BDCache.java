@@ -13,8 +13,8 @@ public class BDCache {
 
     private BDSpotify bd;
 
-    public BDCache(Context context, String name, SQLiteDatabase.CursorFactory factory, int version){
-        this.bd = new BDSpotify(context, name, factory, version);
+    public BDCache(Context context){
+        this.bd = new BDSpotify(context );
     }
 
     public Artist cachedArtist(Item artist){
@@ -23,8 +23,18 @@ public class BDCache {
             result = bd.insertArtist(
                     artist.getId(),
                     artist.getName(),
+                    artist.getImages().isEmpty() ? "" : artist.getImages().get(0).getUrl(),
                     artist.getPopularity(),
                     0);
+        }
+        else if(result.getImage().isEmpty() && !artist.getImages().isEmpty()){
+            bd.updateArtist(
+                    String.valueOf(result.getId()),
+                    result.getIdApi(),
+                    result.getArtistName(),
+                    artist.getImages().get(0).getUrl(),
+                    result.getPopularity(),
+                    result.getRating());
         }
         return result;
     }
@@ -37,6 +47,16 @@ public class BDCache {
         return result;
     }
 
+    public Artist getArtistByName(String artistName){
+        return bd.getArtistByName(artistName);
+    }
 
+    public boolean exitstArtist(String artistName){
+        return bd.getArtistByName(artistName) != null;
+    }
+
+    public SQLiteDatabase getReadableDatabase() {
+        return bd.getReadableDatabase();
+    }
 
 }

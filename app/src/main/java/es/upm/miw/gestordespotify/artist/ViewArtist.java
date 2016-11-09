@@ -18,6 +18,7 @@ import es.upm.miw.gestordespotify.main.MainActivity;
 import es.upm.miw.gestordespotify.model.api.APISpotify;
 import es.upm.miw.gestordespotify.model.api.pojo.searchartists.Item;
 import es.upm.miw.gestordespotify.model.api.pojo.searchalbumartist.SearchAlbumArtist;
+import es.upm.miw.gestordespotify.model.bd.entities.Artist;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -37,10 +38,10 @@ public class ViewArtist extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_artist);
 
-        Item artist =  getIntent().getParcelableExtra(TAG_BUNDLE);
-        setTitle(artist.getName());
-        ((TextView)findViewById(R.id.artistNameArtist)).setText(artist.getName());
-        Picasso.with(getBaseContext()).load(artist.getImages().get(0).getUrl()).into((ImageView) findViewById(R.id.imageArtist));
+        Artist artist =  getIntent().getParcelableExtra(TAG_BUNDLE);
+        setTitle(artist.getArtistName());
+        ((TextView)findViewById(R.id.artistNameArtist)).setText(artist.getArtistName());
+        Picasso.with(getBaseContext()).load(artist.getImage()).into((ImageView) findViewById(R.id.imageArtist));
 
         listView = (ListView) findViewById(R.id.listViewAlbums);
         listView.setFastScrollEnabled(true);
@@ -52,7 +53,7 @@ public class ViewArtist extends Activity {
 
         service = retrofit.create(APISpotify.class);
 
-        Call<SearchAlbumArtist> albums = service.seartAlbumsOfArtist(artist.getId());
+        Call<SearchAlbumArtist> albums = service.seartAlbumsOfArtist(artist.getIdApi());
 
         albums.enqueue(new Callback<SearchAlbumArtist>() {
             @Override
