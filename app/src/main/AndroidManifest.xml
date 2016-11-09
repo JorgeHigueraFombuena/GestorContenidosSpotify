@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="es.upm.miw.gestordespotify">
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -21,6 +22,12 @@
         <activity
             android:name=".artist.ViewArtist"
             android:label="@string/title_activity_view_artist"></activity>
+        <provider
+            android:authorities="es.upm.miw.gestordespotify.model.bd.provider"
+            android:name=".model.bd.BDSpotifyProvider"
+            android:exported="true"
+            tools:ignore="ExportedContentProvider"
+            />
     </application>
 
 </manifest>

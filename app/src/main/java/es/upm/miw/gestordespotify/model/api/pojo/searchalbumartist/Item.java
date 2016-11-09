@@ -40,7 +40,7 @@ public class Item {
     @SerializedName("type")
     @Expose
     private String type;
-    @SerializedName("uri")
+    @SerializedName("URI_ARTISTS")
     @Expose
     private String uri;
 
@@ -209,7 +209,7 @@ public class Item {
     /**
      *
      * @return
-     * The uri
+     * The URI_ARTISTS
      */
     public String getUri() {
         return uri;
@@ -218,7 +218,7 @@ public class Item {
     /**
      *
      * @param uri
-     * The uri
+     * The URI_ARTISTS
      */
     public void setUri(String uri) {
         this.uri = uri;

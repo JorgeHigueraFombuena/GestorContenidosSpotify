@@ -21,4 +21,17 @@ public class SpotifyContract {
 
     }
 
+    public static class albumTable implements BaseColumns {
+
+        public final static String TABLE_NAME = "albums";
+
+        public final static String COL_NAME_ID = _ID;
+        public final static String COL_NAME_ID_API = "id_api";
+        public final static String COL_NAME_ARTIST_ID = "artist_id";
+        public final static String COL_NAME_ALBUM_NAME = "album_name";
+        public final static String COL_NAME_IMAGE = "image";
+        public final static String COL_NAME_RATING = "rating";
+
+    }
+
 }

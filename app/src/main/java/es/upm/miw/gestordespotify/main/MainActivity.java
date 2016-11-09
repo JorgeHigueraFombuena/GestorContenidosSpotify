@@ -17,6 +17,7 @@ import es.upm.miw.gestordespotify.model.api.APISpotify;
 import es.upm.miw.gestordespotify.model.api.Types;
 import es.upm.miw.gestordespotify.model.api.pojo.searchartists.SearchArtist;
 import es.upm.miw.gestordespotify.model.bd.BDCache;
+import es.upm.miw.gestordespotify.model.bd.BDSpotifyProvider;
 import es.upm.miw.gestordespotify.model.bd.entities.Artist;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -101,7 +102,7 @@ public class MainActivity extends Activity {
 
     public void buscarUnArtista(View v){
 
-        String name = ((EditText) findViewById(R.id.text)).getText().toString();
+        String name = ((EditText) findViewById(R.id.textUnArtista)).getText().toString();
 
         if(bdCache.exitstArtist(name)){
             Artist artist = bdCache.getArtistByName(name);

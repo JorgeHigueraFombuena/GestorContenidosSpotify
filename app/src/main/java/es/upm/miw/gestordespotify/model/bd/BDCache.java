@@ -14,7 +14,7 @@ public class BDCache {
     private BDSpotify bd;
 
     public BDCache(Context context){
-        this.bd = new BDSpotify(context );
+        this.bd = new BDSpotify(context);
     }
 
     public Artist cachedArtist(Item artist){
@@ -29,7 +29,7 @@ public class BDCache {
         }
         else if(result.getImage().isEmpty() && !artist.getImages().isEmpty()){
             bd.updateArtist(
-                    String.valueOf(result.getId()),
+                    result.getId(),
                     result.getIdApi(),
                     result.getArtistName(),
                     artist.getImages().get(0).getUrl(),
@@ -57,6 +57,10 @@ public class BDCache {
 
     public SQLiteDatabase getReadableDatabase() {
         return bd.getReadableDatabase();
+    }
+
+    public SQLiteDatabase getWritableDatabase(){
+        return bd.getWritableDatabase();
     }
 
 }
