@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Gestor de Spotify</string>
+    <string name="title_activity_view_artist"></string>
+</resources>
