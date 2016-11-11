@@ -1,7 +1,8 @@
 package es.upm.miw.gestordespotify.artist;
 
-import android.os.Bundle;
 import android.app.Activity;
+import android.os.AsyncTask;
+import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -9,23 +10,17 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import es.upm.miw.gestordespotify.R;
 import es.upm.miw.gestordespotify.main.MainActivity;
 import es.upm.miw.gestordespotify.model.api.APISpotify;
-import es.upm.miw.gestordespotify.model.api.pojo.searchartists.Item;
-import es.upm.miw.gestordespotify.model.api.pojo.searchalbumartist.SearchAlbumArtist;
+import es.upm.miw.gestordespotify.model.bd.BDCache;
+import es.upm.miw.gestordespotify.model.bd.IBDCache;
+import es.upm.miw.gestordespotify.model.bd.entities.Album;
 import es.upm.miw.gestordespotify.model.bd.entities.Artist;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
-public class ViewArtist extends Activity {
+public class ViewArtist extends Activity implements IBDCache<Album> {
 
     public static String TAG_BUNDLE = "artist";
 
@@ -33,12 +28,20 @@ public class ViewArtist extends Activity {
 
     private ListView listView;
 
+    private BDCache bdCache;
+
+    private List<Album> list;
+
+    private Artist artist;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_artist);
 
-        Artist artist =  getIntent().getParcelableExtra(TAG_BUNDLE);
+        bdCache = new BDCache(getBaseContext(), this);
+
+        artist =  getIntent().getParcelableExtra(TAG_BUNDLE);
         setTitle(artist.getArtistName());
         ((TextView)findViewById(R.id.artistNameArtist)).setText(artist.getArtistName());
         Picasso.with(getBaseContext()).load(artist.getImage()).into((ImageView) findViewById(R.id.imageArtist));
@@ -46,6 +49,24 @@ public class ViewArtist extends Activity {
         listView = (ListView) findViewById(R.id.listViewAlbums);
         listView.setFastScrollEnabled(true);
 
+        new AsyncTask<Integer, Integer, Integer>() {
+            @Override
+            protected Integer doInBackground(Integer... lists) {
+                list = bdCache.getAlbumsOfAnArtist(artist.getId(), artist.getIdApi());
+                return list.size();
+            }
+            @Override
+            protected void onPostExecute(Integer aVoid) {
+                super.onPostExecute(aVoid);
+                MyAdapter myAdapter = new MyAdapter(
+                        getBaseContext(),
+                        R.layout.element_album,
+                        list
+                );
+                listView.setAdapter(myAdapter);
+            }
+        }.execute();
+        /*
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(MainActivity.URI)
                 .addConverterFactory(GsonConverterFactory.create())
@@ -81,9 +102,17 @@ public class ViewArtist extends Activity {
             public void onFailure(Call<SearchAlbumArtist> call, Throwable t) {
 
             }
-        });
+        });*/
     }
 
 
-
+    @Override
+    public void updateView(List<Album> list) {
+        MyAdapter myAdapter = new MyAdapter(
+                getBaseContext(),
+                R.layout.element_album,
+                list
+        );
+        listView.setAdapter(myAdapter);
+    }
 }

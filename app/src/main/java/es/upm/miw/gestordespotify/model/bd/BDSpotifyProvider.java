@@ -7,6 +7,14 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.util.Log;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import es.upm.miw.gestordespotify.main.MainActivity;
+import es.upm.miw.gestordespotify.model.bd.entities.Album;
 
 
 public class BDSpotifyProvider extends ContentProvider {
@@ -14,7 +22,7 @@ public class BDSpotifyProvider extends ContentProvider {
     private static final String AUTHORITY =
             BDSpotifyProvider.class.getPackage().getName() + ".provider";
     private static final String ENTITY_ARTIST = "artist";
-    private static final String ENTITY_ALBUM = "artist";
+    private static final String ENTITY_ALBUM = "album";
 
 
     private static final String URI_ARTISTS = "content://" + AUTHORITY + "/" + ENTITY_ARTIST;
@@ -44,7 +52,7 @@ public class BDSpotifyProvider extends ContentProvider {
 
     @Override
     public boolean onCreate() {
-        bd = new BDCache(getContext());
+        bd = new BDCache(getContext(), null);
         return true;
     }
 
@@ -56,13 +64,56 @@ public class BDSpotifyProvider extends ContentProvider {
         String tableName = getTableName(uri);
 
         SQLiteDatabase db = bd.getReadableDatabase();
+        String[] aux = null;
+        aux = selectionArgs;
+        if(selection.contains("like")){
+            selectionArgs = null;
+        }
 
-        return db.query(
+        Cursor c = db.query(
                 tableName,
                 projection,
                 where,
                 selectionArgs,
                 null, null, sortOrder);
+        if(!c.moveToFirst()){
+            switch (tableName){
+                case SpotifyContract.artistTable.TABLE_NAME:
+                    List<String> stringList = Arrays.asList(where.split("like"));
+                    for (int i = 0; i < stringList.size(); i++) {
+                        stringList.set(i, stringList.get(i).trim());
+                    }
+                    Log.i(MainActivity.TAG,where);
+                    int pos = stringList.indexOf(SpotifyContract.artistTable.COL_NAME_ARTIST_NAME);
+                    if(pos>-1){
+                        new BDCache(getContext(),null).getArtistList(aux[pos]);
+                    }
+                    break;
+                case SpotifyContract.albumTable.TABLE_NAME:
+                    List<String> stringList2 = Arrays.asList(where.split("="));
+                    int pos2 = stringList2.indexOf(SpotifyContract.albumTable.COL_NAME_ALBUM_NAME);
+                    int pos3 = stringList2.indexOf(SpotifyContract.albumTable.COL_NAME_ARTIST_ID);
+                    Log.i(MainActivity.TAG,where);
+                    Cursor c2 = db.query(
+                            SpotifyContract.artistTable.TABLE_NAME,
+                            null,
+                            "_id=?",
+                            new String[]{selectionArgs[pos3]},
+                            null, null, null);
+                    if(c2.moveToFirst()) {
+                        String idApi = c2.getString(c2.getColumnIndex(SpotifyContract.artistTable.COL_NAME_ID_API));
+                        Log.i(MainActivity.TAG,"Encuentro algo " + idApi);
+                        List<Album> list = new BDCache(getContext(), null).getAlbumsOfAnArtist(
+                                Integer.parseInt(selectionArgs[pos3]),
+                                idApi
+                        );
+
+                    }
+                    break;
+                default:
+            }
+        }
+        return c;
     }
 
     @Override
@@ -142,7 +193,6 @@ public class BDSpotifyProvider extends ContentProvider {
     private String getWhere(Uri uri, String where){
         switch (uriMatcher.match(uri)){
             case ID_URI_UNIQUE_ARTIST:
-                return "_id = " + uri.getLastPathSegment();
             case ID_URI_UNIQUE_ALBUM:
                 return "_id = " + uri.getLastPathSegment();
             default:

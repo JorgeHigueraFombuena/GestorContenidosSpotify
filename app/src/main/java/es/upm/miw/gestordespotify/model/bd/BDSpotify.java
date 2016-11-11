@@ -3,9 +3,11 @@ package es.upm.miw.gestordespotify.model.bd;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import es.upm.miw.gestordespotify.model.bd.entities.Album;
@@ -34,17 +36,28 @@ public class BDSpotify extends SQLiteOpenHelper {
                 artistTable.COL_NAME_POPULARITY+ " INTEGER, " +
                 artistTable.COL_NAME_RATING + " DOUBLE " +
                 " );";
-        CREATE_SQL += "CREATE TABLE " + albumTable.TABLE_NAME + "( " +
+        sqLiteDatabase.execSQL(CREATE_SQL);
+
+        CREATE_SQL = "CREATE TABLE " + albumTable.TABLE_NAME + "( " +
                 albumTable.COL_NAME_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 albumTable.COL_NAME_ID_API + " TEXT, " +
                 albumTable.COL_NAME_ARTIST_ID + " INTEGER, " +
                 albumTable.COL_NAME_ALBUM_NAME + " TEXT, " +
                 albumTable.COL_NAME_IMAGE + " TEXT, " +
-                albumTable.COL_NAME_RATING + " DOUBLE " +
+                albumTable.COL_NAME_RATING + " DOUBLE, " +
                 "FOREIGN KEY(" + albumTable.COL_NAME_ARTIST_ID + ") " +
                 "REFERENCES " + artistTable.TABLE_NAME + "" +
                 "(" + artistTable.COL_NAME_ID + ") );";
         sqLiteDatabase.execSQL(CREATE_SQL);
+    }
+
+    public long getCount(String idApi, String table, String col){
+        SQLiteDatabase db = getReadableDatabase();
+        return DatabaseUtils.queryNumEntries(
+               db,
+               table,
+               col + "=?",
+               new String[]{idApi});
     }
 
     @Override
@@ -55,14 +68,17 @@ public class BDSpotify extends SQLiteOpenHelper {
     }
 
     public Artist insertArtist(String idApi, String artistName, String image, int popularity, double rating){
-        SQLiteDatabase db = getWritableDatabase();
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(artistTable.COL_NAME_ID_API, idApi);
-        contentValues.put(artistTable.COL_NAME_ARTIST_NAME, artistName);
-        contentValues.put(artistTable.COL_NAME_IMAGE, image);
-        contentValues.put(artistTable.COL_NAME_POPULARITY, popularity);
-        contentValues.put(artistTable.COL_NAME_RATING, rating);
-        long id = db.insert(artistTable.TABLE_NAME, null, contentValues);
+        long id = -1;
+        if(getCount(idApi, artistTable.TABLE_NAME, artistTable.COL_NAME_ID_API) <= 0) {
+            SQLiteDatabase db = getWritableDatabase();
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(artistTable.COL_NAME_ID_API, idApi);
+            contentValues.put(artistTable.COL_NAME_ARTIST_NAME, artistName);
+            contentValues.put(artistTable.COL_NAME_IMAGE, image);
+            contentValues.put(artistTable.COL_NAME_POPULARITY, popularity);
+            contentValues.put(artistTable.COL_NAME_RATING, rating);
+            id = db.insert(artistTable.TABLE_NAME, null, contentValues);
+        }
         return getArtistById(id);
     }
 
@@ -127,16 +143,27 @@ public class BDSpotify extends SQLiteOpenHelper {
         );
     }
 
-    public Album insertArtist(String idApi, int idArtist, String albumName, String image, double rating){
-        SQLiteDatabase db = getWritableDatabase();
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(albumTable.COL_NAME_ID_API, idApi);
-        contentValues.put(albumTable.COL_NAME_ARTIST_ID, idArtist);
-        contentValues.put(albumTable.COL_NAME_ALBUM_NAME, albumName);
-        contentValues.put(albumTable.COL_NAME_IMAGE, image);
-        contentValues.put(albumTable.COL_NAME_RATING, rating);
-        long id = db.insert(artistTable.TABLE_NAME, null, contentValues);
+    public Album insertAlbum(String idApi, int idArtist, String albumName, String image, double rating){
+        long id = -1;
+        if(getCount(idApi, albumTable.TABLE_NAME, albumTable.COL_NAME_ID_API) <= 0) {
+            SQLiteDatabase db = getWritableDatabase();
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(albumTable.COL_NAME_ID_API, idApi);
+            contentValues.put(albumTable.COL_NAME_ARTIST_ID, idArtist);
+            contentValues.put(albumTable.COL_NAME_ALBUM_NAME, albumName);
+            contentValues.put(albumTable.COL_NAME_IMAGE, image);
+            contentValues.put(albumTable.COL_NAME_RATING, rating);
+            id = db.insert(albumTable.TABLE_NAME, null, contentValues);
+        }
         return getAlbumById(id);
+    }
+
+    public boolean checkIfArtistExist(String idApi){
+        return getCount(idApi, artistTable.TABLE_NAME, artistTable.COL_NAME_ID_API) > 0;
+    }
+
+    public boolean checkIfAlbumExist(String idApi){
+        return getCount(idApi, albumTable.TABLE_NAME, albumTable.COL_NAME_ID_API) > 0;
     }
 
     public Album updateAlbum(long id, String idApi, int idArtist, String albumName, String image, double rating){
@@ -200,4 +227,43 @@ public class BDSpotify extends SQLiteOpenHelper {
         );
     }
 
+    public List<Artist> getAllArtistsLikeName(String name) {
+        List<Artist> list = new ArrayList<>();
+        SQLiteDatabase db = getReadableDatabase();
+        String where = artistTable.COL_NAME_ARTIST_NAME + " like ?";
+        Cursor cursor = db.query(
+                artistTable.TABLE_NAME,
+                null,
+                where,
+                new String[]{ "%"+name+"%" },
+                null, null, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                list.add(this.createArtist(cursor));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return list;
+    }
+
+    public List<Album> getAllAlbumsOfArtist(int idArtist) {
+        List<Album> list = new ArrayList<>();
+        SQLiteDatabase db = getReadableDatabase();
+        String where = albumTable.COL_NAME_ARTIST_ID+ " = ?";
+        Cursor cursor = db.query(
+                albumTable.TABLE_NAME,
+                null,
+                where,
+                new String[]{String.valueOf(idArtist)},
+                null, null, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                list.add(this.createAlbum(cursor));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return list;
+    }
 }

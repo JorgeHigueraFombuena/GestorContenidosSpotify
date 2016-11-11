@@ -5,7 +5,8 @@ package es.upm.miw.gestordespotify.model.api;
  */
 
 public enum Types {
-    ARTIST("artist");
+    ARTIST("artist"),
+    ALBUM("album");
 
     private String message;
 

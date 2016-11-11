@@ -18,6 +18,7 @@ import es.upm.miw.gestordespotify.model.api.Types;
 import es.upm.miw.gestordespotify.model.api.pojo.searchartists.SearchArtist;
 import es.upm.miw.gestordespotify.model.bd.BDCache;
 import es.upm.miw.gestordespotify.model.bd.BDSpotifyProvider;
+import es.upm.miw.gestordespotify.model.bd.IBDCache;
 import es.upm.miw.gestordespotify.model.bd.entities.Artist;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -25,15 +26,11 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class MainActivity extends Activity {
-
-    public final static String URI = "https://api.spotify.com/";
+public class MainActivity extends Activity implements IBDCache<Artist> {
 
     public final static String TAG = "MIWUPM";
 
     private ListView listView;
-
-    private APISpotify service;
 
     private SearchArtist result;
 
@@ -47,14 +44,9 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        bdCache = new BDCache(getBaseContext());
+        bdCache = new BDCache(getBaseContext(), this);
 
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(URI)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
 
-        service = retrofit.create(APISpotify.class);
         listView = (ListView) findViewById(R.id.listView);
         listView.setFastScrollEnabled(true);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -67,18 +59,39 @@ public class MainActivity extends Activity {
         });
     }
 
+    @Override
+    public void updateView(List<Artist> list){
+        MyAdapter myAdapter = new MyAdapter(
+                getBaseContext(),
+                R.layout.element,
+                list
+        );
+        cachedList = list;
+        listView.setAdapter(myAdapter);
+    }
 
     public void buscar(View v){
 
-        String name = ((EditText) findViewById(R.id.text)).getText().toString();
-
-        Retrofit retrofit = new Retrofit.Builder()
+        final String name = ((EditText) findViewById(R.id.text)).getText().toString();
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                cachedList = bdCache.getArtistList(name);
+            }
+        });
+        MyAdapter myAdapter = new MyAdapter(
+                getBaseContext(),
+                R.layout.element,
+                cachedList
+        );
+        listView.setAdapter(myAdapter);
+        /*Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(URI)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         service = retrofit.create(APISpotify.class);
 
-        final Call<SearchArtist> listaSeries = service.searchArtist(name, Types.ARTIST.toString());
+        Call<SearchArtist> listaSeries = service.searchArtist(name, Types.ARTIST.toString());
         listaSeries.enqueue(new Callback<SearchArtist>() {
             @Override
             public void onResponse(Call<SearchArtist> call, Response<SearchArtist> response) {
@@ -97,14 +110,14 @@ public class MainActivity extends Activity {
             public void onFailure(Call<SearchArtist> call, Throwable t) {
                 Log.e(TAG,t.toString());
             }
-        });
+        });*/
     }
 
     public void buscarUnArtista(View v){
 
-        String name = ((EditText) findViewById(R.id.textUnArtista)).getText().toString();
+        //String name = ((EditText) findViewById(R.id.textUnArtista)).getText().toString();
 
-        if(bdCache.exitstArtist(name)){
+        /*if(bdCache.exitstArtist(name)){
             Artist artist = bdCache.getArtistByName(name);
             Intent intent = new Intent(getApplicationContext(), ViewArtist.class);
             intent.putExtra(ViewArtist.TAG_BUNDLE,artist);
@@ -137,6 +150,6 @@ public class MainActivity extends Activity {
                     Log.e(TAG, t.toString());
                 }
             });
-        }
+        }*/
     }
 }
